@@ -25,3 +25,27 @@ def make_move(board, column, player):
             return True
 
     return False
+
+
+def check_game_state(board):
+    """Return the winning player, 'draw' if the board is full, or None."""
+    directions = ((0, 1), (1, 0), (1, 1), (1, -1))
+
+    for row_index, row in enumerate(board):
+        for column_index, player in enumerate(row):
+            if player == 0:
+                continue
+
+            for row_step, column_step in directions:
+                if all(
+                    0 <= row_index + step * row_step < len(board)
+                    and 0 <= column_index + step * column_step < len(board[row_index + step * row_step])
+                    and board[row_index + step * row_step][column_index + step * column_step] == player
+                    for step in range(1, 4)
+                ):
+                    return player
+
+    if all(cell != 0 for row in board for cell in row):
+        return "draw"
+
+    return None
