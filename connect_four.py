@@ -49,3 +49,83 @@ def check_game_state(board):
         return "draw"
 
     return None
+
+
+def run_gui():
+    """Run the Connect Four game with a FreeSimpleGUI interface."""
+    try:
+        import FreeSimpleGUI as sg
+    except ImportError as error:
+        raise RuntimeError(
+            "FreeSimpleGUI is required to run the graphical game. "
+            "Install it with: pip install FreeSimpleGUI"
+        ) from error
+
+    layout = [
+        [sg.Text("Player 1's turn", key="status", justification="center", expand_x=True)],
+        [
+            sg.Button(
+                str(column),
+                key=f"column_{column}",
+                size=(4, 1),
+            )
+            for column in range(1, COLUMNS + 1)
+        ],
+    ]
+    for row_index in range(ROWS):
+        layout.append(
+            [
+                sg.Button(
+                    "●",
+                    key=f"cell_{row_index}_{column_index}",
+                    size=(4, 2),
+                    button_color=("#B0BEC5", "#1565C0"),
+                    disabled=True,
+                )
+                for column_index in range(COLUMNS)
+            ]
+        )
+
+    window = sg.Window("Connect Four", layout, finalize=True)
+    current_player = 1
+
+    while True:
+        event, _ = window.read()
+        if event == sg.WIN_CLOSED:
+            break
+
+        column = int(event.removeprefix("column_"))
+        if not make_move(board, column, current_player):
+            window["status"].update(f"Column {column} is full. Choose another.")
+            continue
+
+        for row_index, row in enumerate(board):
+            for column_index, cell in enumerate(row):
+                if cell == 1:
+                    color = "#E53935"
+                elif cell == 2:
+                    color = "#FDD835"
+                else:
+                    color = "#B0BEC5"
+                window[f"cell_{row_index}_{column_index}"].update(
+                    button_color=(color, "#1565C0")
+                )
+
+        game_state = check_game_state(board)
+        if game_state == "draw":
+            window["status"].update("It's a draw!")
+        elif game_state in (1, 2):
+            window["status"].update(f"Player {game_state} wins!")
+        else:
+            current_player = 3 - current_player
+            window["status"].update(f"Player {current_player}'s turn")
+            continue
+
+        for next_column in range(1, COLUMNS + 1):
+            window[f"column_{next_column}"].update(disabled=True)
+
+    window.close()
+
+
+if __name__ == "__main__":
+    run_gui()
