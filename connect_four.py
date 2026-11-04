@@ -5,14 +5,14 @@ board = [[0 for _ in range(COLUMNS)] for _ in range(ROWS)]
 
 
 def print_board(board):
-    """Print the board as a grid in the terminal."""
+    """Exibe o tabuleiro formatado no terminal."""
     print("  " + "   ".join(str(column) for column in range(1, COLUMNS + 1)))
     for row in board:
         print("| " + " | ".join(str(cell) for cell in row) + " |")
 
 
 def make_move(board, column, player):
-    """Place a player's piece in a 1-based column; return False if it is full."""
+    """Coloca uma peça na coluna escolhida ou retorna False se ela estiver cheia."""
     if not isinstance(column, int) or not 1 <= column <= COLUMNS:
         raise ValueError(f"Column must be an integer between 1 and {COLUMNS}.")
     if player not in (1, 2):
@@ -28,7 +28,7 @@ def make_move(board, column, player):
 
 
 def check_game_state(board):
-    """Return the winning player, 'draw' if the board is full, or None."""
+    """Retorna o vencedor, 'draw' em caso de empate ou None se a partida continua."""
     directions = ((0, 1), (1, 0), (1, 1), (1, -1))
 
     for row_index, row in enumerate(board):
@@ -52,7 +52,7 @@ def check_game_state(board):
 
 
 def run_gui():
-    """Run the Connect Four game with a FreeSimpleGUI interface."""
+    """Executa a interface gráfica e gerencia as jogadas da partida."""
     try:
         import FreeSimpleGUI as sg
     except ImportError as error:
@@ -126,6 +126,28 @@ def run_gui():
 
         for next_column in range(1, COLUMNS + 1):
             window[f"column_{next_column}"].update(disabled=True)
+
+        if game_state == "draw":
+            message = "Deu empate!"
+        else:
+            message = f"Jogador {game_state} venceu!"
+
+        restart = sg.popup_yes_no(
+            f"{message}\nDeseja iniciar uma nova partida?",
+            title="Fim de jogo",
+        )
+        if restart == "Yes":
+            for row in game_board:
+                row[:] = [0] * COLUMNS
+            for row_index in range(ROWS):
+                for column_index in range(COLUMNS):
+                    window[f"cell_{row_index}_{column_index}"].update(
+                        button_color=("#B0BEC5", "#1565C0")
+                    )
+            for next_column in range(1, COLUMNS + 1):
+                window[f"column_{next_column}"].update(disabled=False)
+            current_player = 1
+            window["status"].update("Player 1's turn")
 
     window.close()
 
