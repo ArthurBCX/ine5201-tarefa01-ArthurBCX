@@ -61,6 +61,7 @@ def run_gui():
             "Install it with: pip install FreeSimpleGUI"
         ) from error
 
+    game_board = [[0 for _ in range(COLUMNS)] for _ in range(ROWS)]
     layout = [
         [sg.Text("Player 1's turn", key="status", justification="center", expand_x=True)],
         [
@@ -95,23 +96,25 @@ def run_gui():
             break
 
         column = int(event.removeprefix("column_"))
-        if not make_move(board, column, current_player):
+        if not make_move(game_board, column, current_player):
             window["status"].update(f"Column {column} is full. Choose another.")
+            window[event].update(disabled=True)
             continue
 
-        for row_index, row in enumerate(board):
-            for column_index, cell in enumerate(row):
-                if cell == 1:
-                    color = "#E53935"
-                elif cell == 2:
-                    color = "#FDD835"
-                else:
-                    color = "#B0BEC5"
-                window[f"cell_{row_index}_{column_index}"].update(
-                    button_color=(color, "#1565C0")
-                )
+        row_index = next(
+            row_index
+            for row_index, row in enumerate(game_board)
+            if row[column - 1] != 0
+        )
+        piece_color = "#E53935" if current_player == 1 else "#FDD835"
+        window[f"cell_{row_index}_{column - 1}"].update(
+            button_color=("#FFFFFF", piece_color)
+        )
 
-        game_state = check_game_state(board)
+        if game_board[0][column - 1] != 0:
+            window[event].update(disabled=True)
+
+        game_state = check_game_state(game_board)
         if game_state == "draw":
             window["status"].update("It's a draw!")
         elif game_state in (1, 2):
